@@ -1,0 +1,93 @@
+# Training phrases for the intent classifier: intent<TAB>example
+balance	what is my balance
+balance	how much money do i have
+balance	show my balance
+balance	how much is in my account
+balance	check my account balance
+balance	what's left in my current account
+balance	am i overdrawn
+balance	how much can i spend
+balance	tell me my balance please
+balance	what do i have in savings
+transfer	send money to an account
+transfer	transfer 50 pounds to 12345678
+transfer	i want to send £20 to my savings
+transfer	pay 100 to account 87654321
+transfer	move money between accounts
+transfer	make a payment of £35
+transfer	can you transfer some cash
+transfer	send 15 quid to 11112222
+transfer	i need to pay someone
+transfer	transfer funds please
+transactions	show my recent transactions
+transactions	what did i spend recently
+transactions	list my last payments
+transactions	show my statement
+transactions	what are my latest purchases
+transactions	recent activity on my account
+transactions	where did my money go
+transactions	show me my spending history
+transactions	what payments came out this week
+transactions	last few transactions
+block_card	i lost my card
+block_card	my card was stolen
+block_card	block my card
+block_card	freeze my debit card
+block_card	someone used my card without permission
+block_card	cancel my card it's missing
+block_card	i can't find my bank card
+block_card	stop my card now
+block_card	my wallet was stolen
+block_card	suspicious payment on my card freeze it
+hours	what time do you open
+hours	when are branches open
+hours	opening hours
+hours	are you open on sunday
+hours	what time does the bank close
+hours	branch opening times
+hours	is the branch open today
+hours	when can i visit a branch
+greeting	hello
+greeting	hi there
+greeting	good morning
+greeting	hey
+greeting	hiya
+greeting	good afternoon
+greeting	hello can you help me
+greeting	hi bot
+goodbye	bye
+goodbye	thanks that's all
+goodbye	goodbye
+goodbye	see you later
+goodbye	thank you bye
+goodbye	that's everything thanks
+goodbye	cheers bye
+goodbye	no that's it
+balance	balance
+balance	what's my balance today
+balance	how much have i got
+balance	money left in my account
+transfer	send money
+transfer	pay my friend 30 pounds
+transfer	i want to make a transfer
+transfer	send cash to my flatmate
+transactions	transactions
+transactions	show my last payments
+transactions	what have i bought lately
+transactions	my recent spending
+block_card	lost card
+block_card	card stolen please block
+block_card	i think my card was taken
+block_card	freeze card
+hours	what are your opening times
+hours	when do you close today
+hours	branch hours on saturday
+hours	are branches open at the weekend
+greeting	hi
+greeting	hello there
+greeting	hey there good evening
+greeting	morning
+goodbye	thanks bye
+goodbye	thank you that's all
+goodbye	bye for now
+goodbye	ok thanks goodbye
