@@ -61,13 +61,13 @@ public class ChatBot {
 
     private String startTransfer(String text) {
         pending = "transfer";
-        toAccount = Entities.account(text).orElse(null);
+        toAccount = Entities.account(text).or(() -> bank.payeeMentionedIn(text)).orElse(null);
         amount = Entities.amount(text).orElse(null);
         return nextTransferQuestion();
     }
 
     private String nextTransferQuestion() {
-        if (toAccount == null) return "Which account should I send it to? Please give the 8-digit account number.";
+        if (toAccount == null) return "Who should I send it to? Give a saved payee's name or an 8-digit account number.";
         if (amount == null) return "How much would you like to send to " + bank.payeeName(toAccount) + "?";
         pending = "transfer-confirm";
         return "Send £" + amount + " to " + bank.payeeName(toAccount) + "? (yes/no)";
@@ -85,7 +85,7 @@ public class ChatBot {
             }
             case "transfer" -> {
                 if (no) { clear(); return "OK, I've cancelled that transfer."; }
-                if (toAccount == null) toAccount = Entities.account(text).orElse(null);
+                if (toAccount == null) toAccount = Entities.account(text).or(() -> bank.payeeMentionedIn(text)).orElse(null);
                 else if (amount == null) amount = Entities.amount(text).orElse(null);
                 return nextTransferQuestion();
             }

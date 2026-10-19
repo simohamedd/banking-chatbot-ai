@@ -5,7 +5,9 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 /** A tiny in-memory bank for the chatbot to talk to. */
 public class Bank {
@@ -39,6 +41,17 @@ public class Bank {
     public boolean cardBlocked() { return cardBlocked; }
     public String ownAccount() { return ownAccount; }
     public String payeeName(String account) { return payees.getOrDefault(account, "account " + account); }
+
+    /** Finds a saved payee whose name appears in the message, for example "Yusuf" in "send £20 to yusuf". */
+    public Optional<String> payeeMentionedIn(String text) {
+        String lower = " " + text.toLowerCase(Locale.UK).replaceAll("[^a-z0-9]+", " ") + " ";
+        for (var e : payees.entrySet()) {
+            for (String word : e.getValue().toLowerCase(Locale.UK).split("[^a-z0-9]+")) {
+                if (word.length() >= 3 && lower.contains(" " + word + " ")) return Optional.of(e.getKey());
+            }
+        }
+        return Optional.empty();
+    }
 
     public List<Payment> recent(int n) {
         return payments.stream().sorted((a, b) -> b.date().compareTo(a.date())).limit(n).toList();

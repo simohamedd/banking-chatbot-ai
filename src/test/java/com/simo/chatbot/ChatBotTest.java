@@ -60,7 +60,7 @@ class ChatBotTest {
 
     @Test
     void transferAsksForMissingDetailsThenConfirms() {
-        assertTrue(bot.reply("I want to send some money").contains("Which account"));
+        assertTrue(bot.reply("I want to send some money").contains("Who should I send it to"));
         assertTrue(bot.reply("12345678").contains("How much"));
         assertTrue(bot.reply("£50").contains("Send £50.00 to Savings pot?"));
         assertTrue(bot.reply("yes").contains("new balance is £1200.00"));
@@ -88,5 +88,15 @@ class ChatBotTest {
     @Test
     void admitsWhenItDoesNotUnderstand() {
         assertTrue(bot.reply("xyzzy plugh").contains("not sure"));
+    }
+
+    @Test
+    void transfersToASavedPayeeByName() {
+        assertTrue(bot.reply("send £20 to Yusuf").contains("Send £20.00 to Yusuf (flatmate)?"));
+        bot.reply("yes");
+        assertEquals(new BigDecimal("1230.00"), bank.balance());
+
+        assertTrue(bot.reply("transfer some money").contains("Who should I send it to"));
+        assertTrue(bot.reply("my savings pot").contains("How much would you like to send to Savings pot?"));
     }
 }
