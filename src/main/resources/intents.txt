@@ -91,3 +91,11 @@ goodbye	thanks bye
 goodbye	thank you that's all
 goodbye	bye for now
 goodbye	ok thanks goodbye
+unblock_card	i found my card
+unblock_card	unblock my card
+unblock_card	unfreeze my card please
+unblock_card	i found my wallet can you unblock my card
+unblock_card	turn my card back on
+unblock_card	reactivate my debit card
+unblock_card	my card turned up
+unblock_card	unfreeze card

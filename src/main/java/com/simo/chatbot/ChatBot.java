@@ -38,7 +38,7 @@ public class ChatBot {
         NaiveBayes.Prediction p = classifier.classify(text);
         if (p.confidence() < MIN_CONFIDENCE) {
             return "I'm not sure I understood. I can check your balance, show recent transactions, "
-                    + "make a transfer, block a lost card, or tell you branch opening hours.";
+                    + "make a transfer, block or unblock a card, or tell you branch opening hours.";
         }
         return switch (p.label()) {
             case "greeting" -> "Hello! How can I help with your account today?";
@@ -53,6 +53,11 @@ public class ChatBot {
                 if (bank.cardBlocked()) yield "Your card is already blocked.";
                 pending = "block";
                 yield "I can block your card now. You won't be able to use it until a replacement arrives. Shall I go ahead? (yes/no)";
+            }
+            case "unblock_card" -> {
+                if (!bank.cardBlocked()) yield "Your card isn't blocked, so there's nothing to undo.";
+                pending = "unblock";
+                yield "Glad you found it. Shall I unblock your card so you can use it again? (yes/no)";
             }
             case "transfer" -> startTransfer(text);
             default -> "I'm not sure how to help with that yet.";
@@ -82,6 +87,11 @@ public class ChatBot {
                 if (yes) { bank.blockCard(); clear(); return "Done. Your card is blocked and a replacement will arrive in 3 to 5 working days."; }
                 if (no) { clear(); return "OK, I've left your card active."; }
                 return "Please answer yes or no: shall I block your card?";
+            }
+            case "unblock" -> {
+                if (yes) { bank.unblockCard(); clear(); return "Done. Your card is active again."; }
+                if (no) { clear(); return "OK, your card stays blocked."; }
+                return "Please answer yes or no: shall I unblock your card?";
             }
             case "transfer" -> {
                 if (no) { clear(); return "OK, I've cancelled that transfer."; }

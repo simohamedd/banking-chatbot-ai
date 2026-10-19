@@ -68,4 +68,8 @@ public class Bank {
     public void blockCard() {
         cardBlocked = true;
     }
+
+    public void unblockCard() {
+        cardBlocked = false;
+    }
 }

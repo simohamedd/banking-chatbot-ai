@@ -99,4 +99,16 @@ class ChatBotTest {
         assertTrue(bot.reply("transfer some money").contains("Who should I send it to"));
         assertTrue(bot.reply("my savings pot").contains("How much would you like to send to Savings pot?"));
     }
+
+    @Test
+    void unblocksAFoundCardAfterConfirmation() {
+        assertTrue(bot.reply("unblock my card").contains("isn't blocked"));
+        bot.reply("my card was stolen");
+        bot.reply("yes");
+        assertTrue(bank.cardBlocked());
+        assertTrue(bot.reply("good news, I found my card").contains("Shall I unblock"));
+        assertTrue(bank.cardBlocked());
+        assertTrue(bot.reply("yes").contains("active again"));
+        assertTrue(!bank.cardBlocked());
+    }
 }
