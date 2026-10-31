@@ -2,6 +2,8 @@ package com.simo.chatbot;
 
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -12,6 +14,10 @@ public class ChatBot {
 
     private static final double MIN_CONFIDENCE = 0.25;
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("d MMM");
+
+    // A yes or no only counts as a whole word at the start of the reply, so "yusuf" or "now what?" are not answers.
+    private static final Pattern YES = Pattern.compile("^(yes|y|yeah|yep|yup|sure|ok|okay|go ahead|confirm(ed)?|do it)\\b.*");
+    private static final Pattern NO = Pattern.compile("^(no|n|nope|nah|cancel|stop|don't|do not|not now)\\b.*");
 
     private final IntentClassifier classifier;
     private final Bank bank;
@@ -79,9 +85,8 @@ public class ChatBot {
     }
 
     private String continuePending(String text) {
-        String lower = text.toLowerCase();
-        boolean yes = lower.matches("(yes|y|yeah|yep|sure|ok|okay|go ahead|confirm).*");
-        boolean no = lower.matches("(no|n|nope|cancel|stop|don't).*");
+        boolean yes = isYes(text);
+        boolean no = isNo(text);
         switch (pending) {
             case "block" -> {
                 if (yes) { bank.blockCard(); clear(); return "Done. Your card is blocked and a replacement will arrive in 3 to 5 working days."; }
@@ -116,6 +121,18 @@ public class ChatBot {
             }
             default -> { clear(); return null; }
         }
+    }
+
+    static boolean isYes(String text) {
+        return YES.matcher(normalise(text)).matches();
+    }
+
+    static boolean isNo(String text) {
+        return NO.matcher(normalise(text)).matches();
+    }
+
+    private static String normalise(String text) {
+        return text.trim().toLowerCase(Locale.UK).replace('\u2019', '\'');
     }
 
     private void clear() {
