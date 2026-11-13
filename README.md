@@ -6,7 +6,7 @@ A banking assistant you chat with in the terminal. It understands what you're as
 
 ## What it can do
 - Tell you your balance and recent transactions
-- Make a transfer, asking for the account or amount if you left them out, and confirming before money moves
+- Make a transfer, asking for the account or amount if you left them out, and confirming before money moves (amounts like `£1,250.50` are read in full)
 - Block a lost or stolen card, and unblock it if it turns up, each after you confirm
 - Give branch opening hours, and say hello and goodbye
 
