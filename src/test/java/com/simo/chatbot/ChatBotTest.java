@@ -111,4 +111,33 @@ class ChatBotTest {
         assertTrue(bot.reply("yes").contains("active again"));
         assertTrue(!bank.cardBlocked());
     }
+
+    @Test
+    void onlyAWholeWordYesConfirmsATransfer() {
+        assertTrue(bot.reply("send £20 to 12345678").contains("Send £20.00 to Savings pot?"));
+        assertTrue(bot.reply("yusuf").contains("Please answer yes or no"));
+        assertTrue(bot.reply("your balance first?").contains("Please answer yes or no"));
+        assertTrue(bot.reply("nathan").contains("Please answer yes or no"));
+        assertEquals(new BigDecimal("1250.00"), bank.balance());
+        assertTrue(bot.reply("Yes please").contains("new balance is £1230.00"));
+    }
+
+    @Test
+    void anUnclearReplyDoesNotCancelAHalfFinishedTransfer() {
+        assertTrue(bot.reply("I want to send some money").contains("Who should I send it to"));
+        assertTrue(bot.reply("now what?").contains("Who should I send it to"));
+        assertTrue(bot.reply("not now").contains("cancelled"));
+    }
+
+    @Test
+    void recognisesYesAndNoAsWholeWords() {
+        for (String s : List.of("yes", "Y", "yes please", "OK, go ahead", "okay", "sure!", "yep", "confirm"))
+            assertTrue(ChatBot.isYes(s), s);
+        for (String s : List.of("yusuf", "yesterday", "your balance", "okey dokey", "sur", "no"))
+            assertTrue(!ChatBot.isYes(s), s);
+        for (String s : List.of("no", "N", "no thanks", "nope", "cancel it", "don't", "don\u2019t", "not now"))
+            assertTrue(ChatBot.isNo(s), s);
+        for (String s : List.of("nathan", "now", "netflix", "nothing else", "yes"))
+            assertTrue(!ChatBot.isNo(s), s);
+    }
 }
