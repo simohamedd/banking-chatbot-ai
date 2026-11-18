@@ -73,8 +73,23 @@ class ChatBotTest {
         assertTrue(bot.reply("no").contains("cancelled"));
         assertEquals(new BigDecimal("1250.00"), bank.balance());
 
-        bot.reply("send £5000 to 87654321");
-        assertTrue(bot.reply("yes").contains("only have"));
+        assertTrue(bot.reply("send £5000 to 87654321").contains("You only have £1250.00 available"));
+        assertTrue(bot.reply("£20").contains("Send £20.00 to Yusuf (flatmate)?"));
+    }
+
+    @Test
+    void asksAgainForADetailThatWontWorkAndKeepsTheRest() {
+        String r = bot.reply("send £5000 to Yusuf");
+        assertTrue(r.contains("You only have £1250.00 available. How much would you like to send to Yusuf (flatmate)?"), r);
+        r = bot.reply("£0");
+        assertTrue(r.contains("more than £0. How much would you like to send"), r);
+        assertTrue(bot.reply("£100").contains("Send £100.00 to Yusuf (flatmate)?"));
+        bot.reply("no");
+
+        r = bot.reply("send £20 to 10203040");
+        assertTrue(r.contains("That's your own account. Who should I send it to?"), r);
+        assertTrue(bot.reply("12345678").contains("Send £20.00 to Savings pot?"));
+        assertTrue(bot.reply("yes").contains("new balance is £1230.00"));
     }
 
     @Test

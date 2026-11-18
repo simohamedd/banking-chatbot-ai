@@ -57,10 +57,21 @@ public class Bank {
         return payments.stream().sorted((a, b) -> b.date().compareTo(a.date())).limit(n).toList();
     }
 
+    /** Why a transfer to this account can't be made, or empty if it's fine. */
+    public Optional<String> recipientProblem(String to) {
+        return to.equals(ownAccount) ? Optional.of("That's your own account") : Optional.empty();
+    }
+
+    /** Why this amount can't be sent, or empty if it's fine. */
+    public Optional<String> amountProblem(BigDecimal amount) {
+        if (amount.signum() <= 0) return Optional.of("The amount needs to be more than £0");
+        if (amount.compareTo(balance) > 0) return Optional.of("You only have £" + balance + " available");
+        return Optional.empty();
+    }
+
     public void transfer(String to, BigDecimal amount) {
-        if (amount.signum() <= 0) throw new IllegalArgumentException("The amount needs to be more than £0");
-        if (to.equals(ownAccount)) throw new IllegalArgumentException("That's your own account");
-        if (amount.compareTo(balance) > 0) throw new IllegalArgumentException("You only have £" + balance + " available");
+        Optional<String> problem = recipientProblem(to).or(() -> amountProblem(amount));
+        if (problem.isPresent()) throw new IllegalArgumentException(problem.get());
         balance = balance.subtract(amount);
         payments.add(new Payment(LocalDate.now(), "Transfer to " + payeeName(to), amount.negate()));
     }
