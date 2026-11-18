@@ -100,8 +100,9 @@ public class ChatBot {
             }
             case "transfer" -> {
                 if (no) { clear(); return "OK, I've cancelled that transfer."; }
+                // Fill in whatever is still missing, so "£50 to Yusuf" answers both questions at once.
                 if (toAccount == null) toAccount = Entities.account(text).or(() -> bank.payeeMentionedIn(text)).orElse(null);
-                else if (amount == null) amount = Entities.amount(text).orElse(null);
+                if (amount == null) amount = Entities.amount(text).orElse(null);
                 return nextTransferQuestion();
             }
             case "transfer-confirm" -> {
