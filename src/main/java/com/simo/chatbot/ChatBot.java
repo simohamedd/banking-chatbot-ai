@@ -78,8 +78,18 @@ public class ChatBot {
     }
 
     private String nextTransferQuestion() {
-        if (toAccount == null) return "Who should I send it to? Give a saved payee's name or an 8-digit account number.";
-        if (amount == null) return "How much would you like to send to " + bank.payeeName(toAccount) + "?";
+        // Check each detail as soon as we have it, and ask again for just that one if it won't work.
+        String problem = "";
+        if (toAccount != null) {
+            var p = bank.recipientProblem(toAccount);
+            if (p.isPresent()) { problem = p.get() + ". "; toAccount = null; }
+        }
+        if (amount != null) {
+            var p = bank.amountProblem(amount);
+            if (p.isPresent()) { problem += p.get() + ". "; amount = null; }
+        }
+        if (toAccount == null) return problem + "Who should I send it to? Give a saved payee's name or an 8-digit account number.";
+        if (amount == null) return problem + "How much would you like to send to " + bank.payeeName(toAccount) + "?";
         pending = "transfer-confirm";
         return "Send £" + amount + " to " + bank.payeeName(toAccount) + "? (yes/no)";
     }
