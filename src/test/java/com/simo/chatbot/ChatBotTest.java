@@ -101,6 +101,16 @@ class ChatBotTest {
     }
 
     @Test
+    void aReplyCanGiveThePayeeAndTheAmountTogether() {
+        assertTrue(bot.reply("I want to send some money").contains("Who should I send it to"));
+        assertTrue(bot.reply("£50 to Yusuf").contains("Send £50.00 to Yusuf (flatmate)?"));
+        assertTrue(bot.reply("yes").contains("new balance is £1200.00"));
+
+        assertTrue(bot.reply("send money").contains("Who should I send it to"));
+        assertTrue(bot.reply("30 quid to 12345678").contains("Send £30.00 to Savings pot?"));
+    }
+
+    @Test
     void unblocksAFoundCardAfterConfirmation() {
         assertTrue(bot.reply("unblock my card").contains("isn't blocked"));
         bot.reply("my card was stolen");
