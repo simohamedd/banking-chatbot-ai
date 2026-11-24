@@ -141,7 +141,6 @@ class ChatBotTest {
     void onlyAWholeWordYesConfirmsATransfer() {
         assertTrue(bot.reply("send £20 to 12345678").contains("Send £20.00 to Savings pot?"));
         assertTrue(bot.reply("yusuf").contains("Please answer yes or no"));
-        assertTrue(bot.reply("your balance first?").contains("Please answer yes or no"));
         assertTrue(bot.reply("nathan").contains("Please answer yes or no"));
         assertEquals(new BigDecimal("1250.00"), bank.balance());
         assertTrue(bot.reply("Yes please").contains("new balance is £1230.00"));
@@ -164,5 +163,33 @@ class ChatBotTest {
             assertTrue(ChatBot.isNo(s), s);
         for (String s : List.of("nathan", "now", "netflix", "nothing else", "yes"))
             assertTrue(!ChatBot.isNo(s), s);
+    }
+
+    @Test
+    void answersAQuickQuestionWithoutLosingTheTransfer() {
+        assertTrue(bot.reply("send £20 to 12345678").contains("Send £20.00 to Savings pot?"));
+        String r = bot.reply("your balance first?");
+        assertTrue(r.contains("Your balance is £1250.00."), r);
+        assertTrue(r.endsWith("Send £20.00 to Savings pot? (yes/no)"), r);
+        assertEquals(new BigDecimal("1250.00"), bank.balance());
+        assertTrue(bot.reply("yes").contains("new balance is £1230.00"));
+
+        assertTrue(bot.reply("I want to send some money").contains("Who should I send it to"));
+        r = bot.reply("when do you open?");
+        assertTrue(r.contains("Monday to Friday") && r.endsWith("8-digit account number."), r);
+        assertTrue(bot.reply("Yusuf").contains("How much would you like to send to Yusuf (flatmate)?"));
+        r = bot.reply("show my transactions");
+        assertTrue(r.contains("Transfer to Savings pot") && r.endsWith("send to Yusuf (flatmate)?"), r);
+        assertTrue(bot.reply("£10").contains("Send £10.00 to Yusuf (flatmate)?"));
+    }
+
+    @Test
+    void aQuickQuestionKeepsACardRequestPending() {
+        bot.reply("I lost my card");
+        String r = bot.reply("what's my balance");
+        assertTrue(r.contains("Your balance is") && r.endsWith("Shall I still block your card? (yes/no)"), r);
+        assertTrue(!bank.cardBlocked());
+        bot.reply("yes");
+        assertTrue(bank.cardBlocked());
     }
 }
