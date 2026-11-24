@@ -16,6 +16,8 @@ public class ChatBot {
     // A side question asked mid-conversation has to be a clearer match, so a stray reply isn't mistaken for one.
     private static final double SIDE_QUESTION_CONFIDENCE = 0.4;
     private static final java.util.Set<String> SIDE_QUESTIONS = java.util.Set.of("balance", "transactions", "hours");
+    private static final int DEFAULT_TRANSACTIONS = 5;
+    private static final int MAX_TRANSACTIONS = 20;
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("d MMM");
 
     // A yes or no only counts as a whole word at the start of the reply, so "yusuf" or "now what?" are not answers.
@@ -42,7 +44,7 @@ public class ChatBot {
         NaiveBayes.Prediction p = classifier.classify(text);
 
         if (pending != null) {
-            if (isSideQuestion(text, p)) return answer(p.label()) + "\n" + pendingQuestion();
+            if (isSideQuestion(text, p)) return answer(p.label(), text) + "\n" + pendingQuestion();
             String r = continuePending(text);
             if (r != null) return r;
         }
@@ -54,7 +56,7 @@ public class ChatBot {
         return switch (p.label()) {
             case "greeting" -> "Hello! How can I help with your account today?";
             case "goodbye" -> "Thanks for banking with us. Goodbye!";
-            case "balance", "transactions", "hours" -> answer(p.label());
+            case "balance", "transactions", "hours" -> answer(p.label(), text);
             case "block_card" -> {
                 if (bank.cardBlocked()) yield "Your card is already blocked.";
                 pending = "block";
@@ -71,16 +73,30 @@ public class ChatBot {
     }
 
     /** Answers a question that only reads information, so it is safe to answer mid-conversation. */
-    private String answer(String intent) {
+    private String answer(String intent, String text) {
         return switch (intent) {
             case "balance" -> "Your balance is £" + bank.balance() + ".";
-            case "transactions" -> "Your recent transactions:\n" + bank.recent(5).stream()
-                    .map(t -> String.format("  %-7s %-22s %s£%s", t.date().format(DAY), t.description(),
-                            t.amount().signum() < 0 ? "-" : "+", t.amount().abs()))
-                    .collect(Collectors.joining("\n"));
+            case "transactions" -> transactions(text);
             case "hours" -> "Branches are open Monday to Friday 9am to 5pm, and Saturday 9am to 1pm. They're closed on Sundays.";
             default -> throw new IllegalArgumentException(intent);
         };
+    }
+
+    /** Lists recent payments, as many as the customer asked for ("my last 3 transactions") up to a limit. */
+    private String transactions(String text) {
+        var asked = Entities.transactionCount(text);
+        int n = asked.map(c -> Math.min(c, MAX_TRANSACTIONS)).orElse(DEFAULT_TRANSACTIONS);
+        var list = bank.recent(n);
+        if (list.isEmpty()) return "You don't have any transactions yet.";
+        String heading = asked.isEmpty() ? "Your recent transactions:"
+                : list.size() == 1 ? "Your last transaction:"
+                : "Your last " + list.size() + " transactions:";
+        if (asked.isPresent() && asked.get() > MAX_TRANSACTIONS)
+            heading = "I can show up to " + MAX_TRANSACTIONS + " at a time. " + heading;
+        return heading + "\n" + list.stream()
+                .map(t -> String.format("  %-7s %-22s %s£%s", t.date().format(DAY), t.description(),
+                        t.amount().signum() < 0 ? "-" : "+", t.amount().abs()))
+                .collect(Collectors.joining("\n"));
     }
 
     /**

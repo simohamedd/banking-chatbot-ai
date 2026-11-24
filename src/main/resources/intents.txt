@@ -75,6 +75,9 @@ transactions	transactions
 transactions	show my last payments
 transactions	what have i bought lately
 transactions	my recent spending
+transactions	show my last 10 transactions
+transactions	last 3 payments
+transactions	my 5 most recent purchases
 block_card	lost card
 block_card	card stolen please block
 block_card	i think my card was taken

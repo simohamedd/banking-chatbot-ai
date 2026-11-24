@@ -59,6 +59,24 @@ class ChatBotTest {
     }
 
     @Test
+    void showsAsManyTransactionsAsAskedFor() {
+        String r = bot.reply("show my last 2 transactions");
+        assertTrue(r.startsWith("Your last 2 transactions:"), r);
+        assertTrue(r.contains("Tesco") && r.contains("Salary") && !r.contains("Netflix"), r);
+        r = bot.reply("last 10 payments");
+        assertTrue(r.startsWith("Your last 4 transactions:") && r.contains("Netflix"), r);
+        r = bot.reply("show my last 50 transactions");
+        assertTrue(r.startsWith("I can show up to 20 at a time."), r);
+        assertTrue(bot.reply("show my recent transactions").startsWith("Your recent transactions:"));
+    }
+
+    @Test
+    void saysSoWhenThereAreNoTransactions() {
+        ChatBot fresh = new ChatBot(IntentClassifier.fromResource(), new Bank("10203040", new BigDecimal("0.00")));
+        assertEquals("You don't have any transactions yet.", fresh.reply("show my recent transactions"));
+    }
+
+    @Test
     void transferAsksForMissingDetailsThenConfirms() {
         assertTrue(bot.reply("I want to send some money").contains("Who should I send it to"));
         assertTrue(bot.reply("12345678").contains("How much"));
