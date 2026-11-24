@@ -46,6 +46,16 @@ class EntitiesTest {
     }
 
     @Test
+    void readsHowManyTransactionsWereAskedFor() {
+        assertEquals(Optional.of(3), Entities.transactionCount("show my last 3 transactions"));
+        assertEquals(Optional.of(10), Entities.transactionCount("my 10 most recent payments"));
+        assertEquals(Optional.of(4), Entities.transactionCount("past 4 purchases please"));
+        assertEquals(Optional.of(1), Entities.transactionCount("last 1 payment"));
+        assertEquals(Optional.empty(), Entities.transactionCount("show my recent transactions"));
+        assertEquals(Optional.empty(), Entities.transactionCount("last 0 payments"));
+    }
+
+    @Test
     void transferConfirmsTheFullGroupedAmount() {
         ChatBot bot = new ChatBot(IntentClassifier.fromResource(), Bank.demo());
         String reply = bot.reply("send £1,000 to Yusuf");

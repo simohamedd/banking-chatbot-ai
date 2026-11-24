@@ -18,6 +18,12 @@ public final class Entities {
             + "|\\b((?:" + GROUPED + "|\\d{1,6})" + PENCE + ")\\b",
             Pattern.CASE_INSENSITIVE);
 
+    /** "last 3 transactions", "my 10 most recent payments", "past 4 purchases". */
+    private static final Pattern COUNT = Pattern.compile(
+            "\\b(?:last|latest|recent|past|previous)\\s+(\\d{1,3})\\b"
+            + "|\\b(\\d{1,3})\\s+(?:(?:most\\s+)?recent\\s+|latest\\s+|last\\s+)?(?:transactions?|payments?|purchases?)\\b",
+            Pattern.CASE_INSENSITIVE);
+
     private Entities() {
     }
 
@@ -38,5 +44,13 @@ public final class Entities {
             return Optional.of(new BigDecimal(v.replace(",", "")).setScale(2, java.math.RoundingMode.HALF_UP));
         }
         return Optional.empty();
+    }
+
+    /** How many transactions the customer asked to see, if they gave a number above zero. */
+    public static Optional<Integer> transactionCount(String text) {
+        Matcher m = COUNT.matcher(text);
+        if (!m.find()) return Optional.empty();
+        int n = Integer.parseInt(m.group(1) != null ? m.group(1) : m.group(2));
+        return n > 0 ? Optional.of(n) : Optional.empty();
     }
 }

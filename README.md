@@ -5,7 +5,7 @@
 A banking assistant you chat with in the terminal. It understands what you're asking with a naive Bayes text classifier written from scratch, picks out amounts and account numbers, and holds a short conversation to complete tasks safely.
 
 ## What it can do
-- Tell you your balance and recent transactions
+- Tell you your balance and recent transactions (the last five, or as many as you ask for: "show my last 10 payments", up to 20)
 - Make a transfer, asking for the account or amount if you left them out, and checking the amount and recipient as soon as it has them, and confirming before money moves (amounts like `£1,250.50` are read in full)
 - Block a lost or stolen card, and unblock it if it turns up, each after you confirm
 - Give branch opening hours, and say hello and goodbye
