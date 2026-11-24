@@ -13,6 +13,9 @@ import java.util.stream.Collectors;
 public class ChatBot {
 
     private static final double MIN_CONFIDENCE = 0.25;
+    // A side question asked mid-conversation has to be a clearer match, so a stray reply isn't mistaken for one.
+    private static final double SIDE_QUESTION_CONFIDENCE = 0.4;
+    private static final java.util.Set<String> SIDE_QUESTIONS = java.util.Set.of("balance", "transactions", "hours");
     private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("d MMM");
 
     // A yes or no only counts as a whole word at the start of the reply, so "yusuf" or "now what?" are not answers.
@@ -36,12 +39,14 @@ public class ChatBot {
         String text = message.trim();
         if (text.isEmpty()) return "Sorry, I didn't catch that.";
 
+        NaiveBayes.Prediction p = classifier.classify(text);
+
         if (pending != null) {
+            if (isSideQuestion(text, p)) return answer(p.label()) + "\n" + pendingQuestion();
             String r = continuePending(text);
             if (r != null) return r;
         }
 
-        NaiveBayes.Prediction p = classifier.classify(text);
         if (p.confidence() < MIN_CONFIDENCE) {
             return "I'm not sure I understood. I can check your balance, show recent transactions, "
                     + "make a transfer, block or unblock a card, or tell you branch opening hours.";
@@ -49,12 +54,7 @@ public class ChatBot {
         return switch (p.label()) {
             case "greeting" -> "Hello! How can I help with your account today?";
             case "goodbye" -> "Thanks for banking with us. Goodbye!";
-            case "balance" -> "Your balance is £" + bank.balance() + ".";
-            case "transactions" -> "Your recent transactions:\n" + bank.recent(5).stream()
-                    .map(t -> String.format("  %-7s %-22s %s£%s", t.date().format(DAY), t.description(),
-                            t.amount().signum() < 0 ? "-" : "+", t.amount().abs()))
-                    .collect(Collectors.joining("\n"));
-            case "hours" -> "Branches are open Monday to Friday 9am to 5pm, and Saturday 9am to 1pm. They're closed on Sundays.";
+            case "balance", "transactions", "hours" -> answer(p.label());
             case "block_card" -> {
                 if (bank.cardBlocked()) yield "Your card is already blocked.";
                 pending = "block";
@@ -67,6 +67,43 @@ public class ChatBot {
             }
             case "transfer" -> startTransfer(text);
             default -> "I'm not sure how to help with that yet.";
+        };
+    }
+
+    /** Answers a question that only reads information, so it is safe to answer mid-conversation. */
+    private String answer(String intent) {
+        return switch (intent) {
+            case "balance" -> "Your balance is £" + bank.balance() + ".";
+            case "transactions" -> "Your recent transactions:\n" + bank.recent(5).stream()
+                    .map(t -> String.format("  %-7s %-22s %s£%s", t.date().format(DAY), t.description(),
+                            t.amount().signum() < 0 ? "-" : "+", t.amount().abs()))
+                    .collect(Collectors.joining("\n"));
+            case "hours" -> "Branches are open Monday to Friday 9am to 5pm, and Saturday 9am to 1pm. They're closed on Sundays.";
+            default -> throw new IllegalArgumentException(intent);
+        };
+    }
+
+    /**
+     * True when a reply to a pending question is really a quick question of its own, like "what's my balance?".
+     * Yes/no answers and replies carrying an amount, account or payee are always treated as answers.
+     */
+    private boolean isSideQuestion(String text, NaiveBayes.Prediction p) {
+        if (!SIDE_QUESTIONS.contains(p.label()) || p.confidence() < SIDE_QUESTION_CONFIDENCE) return false;
+        if (isYes(text) || isNo(text)) return false;
+        return Entities.amount(text).isEmpty() && Entities.account(text).isEmpty()
+                && bank.payeeMentionedIn(text).isEmpty();
+    }
+
+    /** The question the bot is waiting on, repeated after answering a side question. */
+    private String pendingQuestion() {
+        return switch (pending) {
+            case "block" -> "Shall I still block your card? (yes/no)";
+            case "unblock" -> "Shall I still unblock your card? (yes/no)";
+            case "transfer" -> toAccount == null
+                    ? "Who should I send it to? Give a saved payee's name or an 8-digit account number."
+                    : "How much would you like to send to " + bank.payeeName(toAccount) + "?";
+            case "transfer-confirm" -> "Send £" + amount + " to " + bank.payeeName(toAccount) + "? (yes/no)";
+            default -> "";
         };
     }
 
